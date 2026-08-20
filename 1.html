@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini GitHub & Code Editor Mobile</title>
+  <style>
+    /* Estilos Gerais para Mobile */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0d1117; color: #c9d1d9; height: 100vh; display: flex; flex-direction: column; }
+    
+    /* Barra Superior (Header) */
+    header { background: #161b22; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
+    h1 { font-size: 16px; color: #58a6ff; }
+    button { background: #238636; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    button.alt { background: #21262d; border: 1px solid #30363d; }
+
+    /* Painel Principal */
+    main { flex: 1; display: flex; flex-direction: column; }
+    
+    /* Menu de Arquivos */
+    #file-tree { background: #161b22; padding: 10px; display: flex; gap: 8px; border-bottom: 1px solid #30363d; overflow-x: auto; }
+    .file-tab { background: #21262d; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; border: 1px solid transparent; }
+    .file-tab.active { border-color: #58a6ff; color: #58a6ff; }
+
+    /* Editor de Texto */
+    #editor { flex: 1; width: 100%; background: #0d1117; color: #7ee787; border: none; padding: 15px; font-family: 'Courier New', Courier, monospace; font-size: 14px; outline: none; resize: none; }
+
+    /* Modal de Preview (Tela Cheia) */
+    #preview-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: white; z-index: 1000; }
+    iframe { width: 100%; height: 100%; border: none; }
+
+    /* Estojo de Ferramentas / Botão Flutuante no Preview */
+    #toolkit-btn { position: fixed; bottom: 20px; right: 20px; background: #58a6ff; color: #0d1117; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1001; }
+  </style>
+</head>
+<body>
+
+  <!-- Cabecalho do App -->
+  <header>
+    <h1>WebIDE Repos</h1>
+    <div>
+      <button class="alt" onclick="novoArquivo()">+ Arquivo</button>
+      <button onclick="abrirPreview()">▶ Preview</button>
+    </div>
+  </header>
+
+  <!-- Arvore de Arquivos Ativos -->
+  <div id="file-tree"></div>
+
+  <!-- Area de Edicao de Codigo -->
+  <textarea id="editor" placeholder="Escreva seu código aqui..." oninput="salvarConteudo()"></textarea>
+
+  <!-- Container do Preview em Tela Cheia -->
+  <div id="preview-modal">
+    <iframe id="preview-frame"></iframe>
+    <div id="toolkit-btn" onclick="fecharPreview()">✏️</div>
+  </div>
+
+  <script>
+    // Estrutura em memória para os arquivos do Repositório
+    let repositorio = JSON.parse(localStorage.getItem('meu_repo')) || {
+      "index.html": "<!DOCTYPE html>\n<html>\n<head>\n  <link rel='stylesheet' href='style.css'>\n</head>\n<body>\n  <h1>Olá Mundo!</h1>\n  <script src='script.js'><\/script>\n</body>\n</html>",
+      "style.css": "body { background: #222; color: #fff; font-family: sans-serif; text-align: center; padding-top: 50px; }",
+      "script.js": "console.log('Script rodando com sucesso!');"
+    };
+
+    let arquivoAtual = "index.html";
+
+    // Inicializa a interface
+    function carregarInterface() {
+      const tree = document.getElementById('file-tree');
+      tree.innerHTML = '';
+      
+      Object.keys(repositorio).forEach(nomeArquivo => {
+        const tab = document.createElement('div');
+        tab.className = `file-tab ${nomeArquivo === arquivoAtual ? 'active' : ''}`;
+        tab.innerText = nomeArquivo;
+        tab.onclick = () => alternarArquivo(nomeArquivo);
+        tree.appendChild(tab);
+      });
+
+      document.getElementById('editor').value = repositorio[arquivoAtual] || '';
+    }
+
+    // Troca de arquivo visivel
+    function alternarArquivo(nome) {
+      arquivoAtual = nome;
+      carregarInterface();
+    }
+
+    // Salva o texto digitado no repositório local
+    function salvarConteudo() {
+      repositorio[arquivoAtual] = document.getElementById('editor').value;
+      localStorage.setItem('meu_repo', JSON.stringify(repositorio));
+    }
+
+    // Adiciona novo arquivo
+    function novoArquivo() {
+      const nome = prompt("Nome do arquivo (ex: app.js, style.css):");
+      if (nome) {
+        repositorio[nome] = "";
+        arquivoAtual = nome;
+        salvarConteudo();
+        carregarInterface();
+      }
+    }
+
+    // Renderiza o HTML + CSS + JS no Iframe de Preview
+    function abrirPreview() {
+      const html = repositorio["index.html"] || "";
+      const css = `<style>${repositorio["style.css"] || ""}</style>`;
+      const js = `<script>${repositorio["script.js"] || ""}<\/script>`;
+
+      // Injeta CSS e JS diretamente dentro do HTML
+      const codigoCompleto = html.replace('</head>', `${css}</head>`).replace('</body>', `${js}</body>`);
+
+      const iframe = document.getElementById('preview-frame');
+      document.getElementById('preview-modal').style.display = 'block';
+      
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(codigoCompleto);
+      doc.close();
+    }
+
+    // Sair do modo Preview e voltar ao Editor
+    function fecharPreview() {
+      document.getElementById('preview-modal').style.display = 'none';
+    }
+
+    // Carrega o editor ao iniciar a pagina
+    carregarInterface();
+  </script>
+</body>
+</html>
