@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDE WYSIWYG Avançado Mobile</title>
+<style>
+  /* Reset e Estrutura Principal */
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #0d1117; color: #e6edf3; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  
+  /* Cabeçalho */
+  header { background: #161b22; padding: 12px; text-align: center; font-weight: bold; border-bottom: 1px solid #30363d; font-size: 16px; }
+  
+  /* Abas de Navegação */
+  .tabs { display: flex; background: #161b22; border-bottom: 1px solid #30363d; }
+  .tabs button { flex: 1; padding: 12px; background: #21262d; border: none; color: #8b949e; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+  .tabs button.active { background: #238636; color: #ffffff; }
+
+  /* Áreas de Edição de Texto */
+  textarea { flex: 1; width: 100%; padding: 12px; border: none; outline: none; resize: none; font-size: 14px; font-family: "Courier New", Courier, monospace; background: #0d1117; color: #7ee787; display: none; }
+
+  /* Barra de Ações Principais */
+  .buttons { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; background: #161b22; justify-content: center; border-top: 1px solid #30363d; }
+  button.action { background: #238636; color: white; border: none; padding: 8px 12px; font-size: 13px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+  button.action:hover { background: #2ea043; }
+  button.action.alt { background: #21262d; border: 1px solid #30363d; }
+
+  /* Container de Visualização (Preview) */
+  iframe { flex: 1; border: none; background: #ffffff; width: 100%; }
+
+  /* Elementos de Tela Cheia */
+  .fullscreen { position: fixed !important; top: 40px !important; left: 0; width: 100vw !important; height: calc(100vh - 40px) !important; z-index: 9998; }
+  #exitFullBtn { display: none; position: fixed; top: 5px; right: 10px; z-index: 10000; background: #da3633; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
+
+  /* Toolbar WYSIWYG Otimizada para Celular */
+  #previewToolbar { display: none; position: fixed; top: 0; left: 0; right: 0; height: 40px; background: #161b22; padding: 4px 8px; z-index: 9999; gap: 6px; align-items: center; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #30363d; }
+  #previewToolbar button, #previewToolbar select, #previewToolbar input { background: #21262d; color: #e6edf3; border: 1px solid #30363d; padding: 4px 8px; border-radius: 4px; font-size: 12px; height: 28px; cursor: pointer; }
+  #previewToolbar button:hover { background: #30363d; }
+</style>
+</head>
+<body>
+
+<header>📱 IDE Mobile WYSIWYG Avançado</header>
+
+<!-- Abas para alternar os arquivos -->
+<div class="tabs">
+  <button id="tabHTML" class="active" onclick="showTab('html')">HTML</button>
+  <button id="tabCSS" onclick="showTab('css')">CSS</button>
+  <button id="tabJS" onclick="showTab('js')">JS</button>
+</div>
+
+<!-- Editores de Código -->
+<textarea id="editorHTML" spellcheck="false"></textarea>
+<textarea id="editorCSS" spellcheck="false"></textarea>
+<textarea id="editorJS" spellcheck="false"></textarea>
+
+<!-- Menu de Controle da Aplicação -->
+<div class="buttons">
+  <button class="action" onclick="runCode()">▶ Executar</button>
+  <button class="action alt" onclick="saveCode()">💾 Salvar</button>
+  <button class="action alt" onclick="loadCode()">📂 Carregar</button>
+  <button class="action alt" onclick="saveFromPreview()">💡 Sincronizar Preview</button>
+  <button class="action alt" onclick="undo()">↩ Desfazer</button>
+  <button class="action" onclick="toggleFull()">🖥 Tela Cheia</button>
+</div>
+
+<!-- Estojo de Ferramentas Edição Visual (Toolbar) -->
+<div id="previewToolbar">
+  <button onclick="execCommand('bold')" title="Negrito"><b>B</b></button>
+  <button onclick="execCommand('italic')" title="Itálico"><i>I</i></button>
+  <button onclick="execCommand('underline')" title="Sublinhado"><u>U</u></button>
+  <select onchange="execCommand('fontName', this.value)">
+    <option value="">Fonte</option>
+    <option value="Arial">Arial</option>
+    <option value="Courier New">Courier</option>
+    <option value="Times New Roman">Times</option>
+    <option value="Verdana">Verdana</option>
+  </select>
+  <select onchange="execCommand('fontSize', this.value)">
+    <option value="">Tamanho</option>
+    <option value="1">Pequeno</option>
+    <option value="3">Normal</option>
+    <option value="5">Grande</option>
+    <option value="7">Título</option>
+  </select>
+  <input type="color" onchange="execCommand('foreColor', this.value)" title="Cor do Texto">
+  <input type="color" onchange="execCommand('hiliteColor', this.value)" title="Cor de Fundo">
+  <button onclick="execCommand('justifyLeft')">⬅</button>
+  <button onclick="execCommand('justifyCenter')">➗</button>
+  <button onclick="execCommand('justifyRight')">➡</button>
+  <button onclick="execCommand('insertOrderedList')">1.</button>
+  <button onclick="execCommand('insertUnorderedList')">•</button>
+  <button onclick="addLink()">🔗 Link</button>
+  <button onclick="addImage()">🖼 Imagem</button>
+  <button onclick="addVideo()">🎬 Vídeo</button>
+</div>
+
+<!-- Visualizador do Projeto -->
+<iframe id="preview"></iframe>
+<button id="exitFullBtn" onclick="toggleFull()">❌ Fechar</button>
+
+<script>
+// Mapeamento dos Elementos do DOM
+const editorHTML = document.getElementById("editorHTML");
+const editorCSS = document.getElementById("editorCSS");
+const editorJS = document.getElementById("editorJS");
+const preview = document.getElementById("preview");
+const exitBtn = document.getElementById("exitFullBtn");
+const previewToolbar = document.getElementById("previewToolbar");
+
+let history = [];
+let isFullscreen = false;
+
+/**
+ * Alterna a exibição entre as abas HTML, CSS e JS
+ * @param {string} tab - Nome da aba a ser exibida ('html', 'css', 'js')
+ */
+function showTab(tab) {
+  document.querySelectorAll("textarea").forEach(t => t.style.display = "none");
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+  
+  if (tab === "html") {
+    editorHTML.style.display = "block";
+    document.getElementById("tabHTML").classList.add("active");
+  } else if (tab === "css") {
+    editorCSS.style.display = "block";
+    document.getElementById("tabCSS").classList.add("active");
+  } else {
+    editorJS.style.display = "block";
+    document.getElementById("tabJS").classList.add("active");
+  }
+}
+
+/**
+ * Injeta os códigos HTML, CSS e JS dentro do Iframe
+ * Ativa o modo interativo/editável (contentEditable)
+ */
+function runCode() {
+  const code = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>${editorCSS.value}</style>
+    </head>
+    <body contenteditable="true" ondrop="handleDrop(event)" ondragover="event.preventDefault()">
+      ${editorHTML.value}
+      <script>
+        document.body.contentEditable = true;
+        document.designMode = "on";
+        
+        // Manipulação de Upload por Arrastar e Soltar (Drag and Drop)
+        function handleDrop(e) {
+          e.preventDefault();
+          if (e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            if (file.type.startsWith('image/')) {
+              const reader = new FileReader();
+              reader.onload = function(ev) {
+                const img = document.createElement('img');
+                img.src = ev.target.result;
+                img.style.maxWidth = "100%";
+                document.body.appendChild(img);
+              };
+              reader.readAsDataURL(file);
+            }
+          }
+        }
+        
+        // Execução do Script Personalizado do Usuário
+        try {
+          ${editorJS.value}
+        } catch(err) {
+          console.error(err);
+        }
+      <\/script>
+    </body>
+    </html>`;
+    
+  preview.srcdoc = code;
+  
+  // Salva no histórico para suporte ao Undo
+  history.push({ html: editorHTML.value, css: editorCSS.value, js: editorJS.value });
+}
+
+/**
+ * Salva a estrutura de código no LocalStorage
+ */
+function saveCode() {
+  const data = { html: editorHTML.value, css: editorCSS.value, js: editorJS.value };
+  localStorage.setItem("ideEditorCode", JSON.stringify(data));
+  alert("✅ Projeto salvo no navegador com sucesso!");
+}
+
+/**
+ * Carrega a estrutura salva do LocalStorage
+ */
+function loadCode() {
+  const saved = localStorage.getItem("ideEditorCode");
+  if (saved) {
+    const data = JSON.parse(saved);
+    editorHTML.value = data.html;
+    editorCSS.value = data.css;
+    editorJS.value = data.js;
+    runCode();
+    alert("📂 Projeto carregado com sucesso!");
+  } else {
+    alert("⚠ Nenhum projeto salvo encontrado.");
+  }
+}
+
+/**
+ * Captura as modificações feitas diretamente dentro do Preview e atualiza o Editor HTML
+ */
+function saveFromPreview() {
+  const iframeDoc = preview.contentDocument || preview.contentWindow.document;
+  editorHTML.value = iframeDoc.body.innerHTML;
+  runCode();
+  alert("💡 Alterações visuais sincronizadas para a aba HTML!");
+}
+
+/**
+ * Restaura o estado anterior do código
+ */
+function undo() {
+  if (history.length > 1) {
+    history.pop(); // Remove o estado atual
+    const lastState = history[history.length - 1];
+    editorHTML.value = lastState.html;
+    editorCSS.value = lastState.css;
+    editorJS.value = lastState.js;
+    runCode();
+  } else {
+    alert("⚠ Não há mais alterações para desfazer.");
+  }
+}
+
+/**
+ * Alterna entre a visualização padrão e a Tela Cheia (Com barra de ferramentas)
+ */
+function toggleFull() {
+  if (!isFullscreen) {
+    preview.classList.add("fullscreen");
+    exitBtn.style.display = "block";
+    previewToolbar.style.display = "flex";
+    isFullscreen = true;
+  } else {
+    preview.classList.remove("fullscreen");
+    exitBtn.style.display = "none";
+    previewToolbar.style.display = "none";
+    isFullscreen = false;
+  }
+}
+
+/**
+ * Executa comandos de formatação WYSIWYG dentro do Iframe
+ */
+function execCommand(cmd, value = null) {
+  const iframeDoc = preview.contentDocument || preview.contentWindow.document;
+  iframeDoc.execCommand(cmd, false, value);
+}
+
+function addLink() {
+  const url = prompt("Digite a URL de destino:", "https://");
+  if (url) execCommand('createLink', url);
+}
+
+function addImage() {
+  const url = prompt("Digite a URL da imagem:", "https://");
+  if (url) execCommand('insertImage', url);
+}
+
+function addVideo() {
+  const url = prompt("Digite a URL do vídeo (embed do YouTube ou MP4):", "https://");
+  if (url) {
+    const iframeDoc = preview.contentDocument || preview.contentWindow.document;
+    const vid = document.createElement('iframe');
+    vid.src = url;
+    vid.style.width = "100%";
+    vid.style.height = "250px";
+    vid.frameBorder = "0";
+    vid.allowFullscreen = true;
+    iframeDoc.body.appendChild(vid);
+  }
+}
+
+// Suporte ao atalho Ctrl+Z no teclado para desfazer
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+    undo();
+  }
+});
+
+// Inicialização de Conteúdo Padrão
+editorHTML.value = `<h1>Título do Projeto</h1>\n<p>Toque no botão <b>Tela cheia</b> para usar a barra de ferramentas e editar este texto diretamente!</p>`;
+editorCSS.value = `body {\n  font-family: sans-serif;\n  padding: 15px;\n  color: #333;\n}\nh1 {\n  color: #238636;\n}`;
+editorJS.value = `console.log("IDE executando perfeitamente!");`;
+
+// Inicialização da Aplicação
+showTab("html");
+runCode();
+</script>
+</body>
+</html>
