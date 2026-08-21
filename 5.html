@@ -1,74 +1,83 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Code Mobile</title>
-  <!-- Biblioteca para criar o arquivo ZIP -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  
-  <style>
-    body { font-family: sans-serif; background: #0d1117; color: white; margin: 0; }
-    .screen { display: none; padding: 20px; }
-    .active { display: block; }
-    .item { background: #161b22; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #30363d; }
-    button { background: #238636; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Mobile IDE</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; }
+        .header { padding: 20px; font-size: 20px; font-weight: bold; border-bottom: 1px solid #30363d; }
+        .content { padding: 20px; }
+        .card { background: #161b22; padding: 15px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #30363d; cursor: pointer; }
+        .btn-add { background: #238636; color: white; padding: 10px; border-radius: 6px; text-align: center; margin-top: 20px; font-weight: bold; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
 
-    <!-- 1. Tela de Login -->
-    <div id="login" class="screen active">
-        <h1>Login</h1>
-        <button onclick="goTo('dashboard')">Acessar App</button>
+    <!-- TELA 1: HOME (Dashboard) -->
+    <div id="screen-home">
+        <div class="header">Home</div>
+        <div class="content">
+            <h3>Meu Trabalho</h3>
+            <div id="lista-projetos"></div>
+            <div class="btn-add" onclick="criarProjeto()">+ Novo Repositório</div>
+        </div>
     </div>
 
-    <!-- 2. Tela de Dashboard (Listagem de Projetos) -->
-    <div id="dashboard" class="screen">
-        <h1>Projetos</h1>
-        <div class="item" onclick="abrirProjeto('MeuSite')">📁 Projeto: MeuSite</div>
-    </div>
-
-    <!-- 3. Tela de Edição e Exportação -->
-    <div id="editor" class="screen">
-        <button onclick="goTo('dashboard')">⬅ Voltar</button>
-        <h2 id="projName">Projeto</h2>
-        <textarea id="codeArea" style="width: 100%; height: 200px;"><h1>Olá Mundo</h1></textarea>
-        <br><br>
-        <button onclick="exportarZip()" style="background: #0969da;">📥 Baixar como .zip</button>
+    <!-- TELA 2: PROJETO (Lista de arquivos) -->
+    <div id="screen-projeto" class="hidden">
+        <div class="header" onclick="voltar()">⬅ Voltar</div>
+        <div class="content">
+            <h2 id="titulo-projeto"></h2>
+            <div id="lista-arquivos"></div>
+            <div class="btn-add" onclick="adicionarArquivo()">+ Adicionar Arquivo</div>
+        </div>
     </div>
 
     <script>
-        // Função para trocar de tela
-        function goTo(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+        // Dados do App
+        let projetos = JSON.parse(localStorage.getItem('meusProjetos')) || [];
+
+        // Navegação simples
+        function voltar() {
+            document.getElementById('screen-projeto').classList.add('hidden');
+            document.getElementById('screen-home').classList.remove('hidden');
         }
 
-        // Simula abertura de projeto
-        function abrirProjeto(nome) {
-            document.getElementById('projName').innerText = nome;
-            goTo('editor');
+        // Criar Projeto
+        function criarProjeto() {
+            let nome = prompt("Nome do novo Repositório:");
+            if (nome) {
+                projetos.push({ nome: nome, arquivos: [] });
+                salvar();
+                renderHome();
+            }
         }
 
-        // Lógica do ZIP
-        async function exportarZip() {
-            const zip = new JSZip();
-            const nomeProjeto = document.getElementById('projName').innerText;
-            const conteudo = document.getElementById('codeArea').value;
-
-            // Adiciona o arquivo ao zip
-            zip.file("index.html", conteudo);
-
-            // Gera o zip e faz o download
-            const blob = await zip.generateAsync({type:"blob"});
-            
-            // Truque do navegador para baixar o arquivo
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = nomeProjeto + ".zip";
-            link.click();
+        // Salvar dados
+        function salvar() {
+            localStorage.setItem('meusProjetos', JSON.stringify(projetos));
         }
+
+        // Renderizar a Home
+        function renderHome() {
+            let container = document.getElementById('lista-projetos');
+            container.innerHTML = '';
+            projetos.forEach((p, index) => {
+                container.innerHTML += `<div class="card" onclick="abrirProjeto(${index})">📁 ${p.nome}</div>`;
+            });
+        }
+
+        // Abrir Projeto
+        function abrirProjeto(index) {
+            document.getElementById('screen-home').classList.add('hidden');
+            document.getElementById('screen-projeto').classList.remove('hidden');
+            document.getElementById('titulo-projeto').innerText = projetos[index].nome;
+        }
+
+        // Inicializa
+        renderHome();
     </script>
 </body>
 </html>
