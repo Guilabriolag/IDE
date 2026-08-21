@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Code Mobile</title>
+  <!-- Biblioteca para criar o arquivo ZIP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  
+  <style>
+    body { font-family: sans-serif; background: #0d1117; color: white; margin: 0; }
+    .screen { display: none; padding: 20px; }
+    .active { display: block; }
+    .item { background: #161b22; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #30363d; }
+    button { background: #238636; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+    <!-- 1. Tela de Login -->
+    <div id="login" class="screen active">
+        <h1>Login</h1>
+        <button onclick="goTo('dashboard')">Acessar App</button>
+    </div>
+
+    <!-- 2. Tela de Dashboard (Listagem de Projetos) -->
+    <div id="dashboard" class="screen">
+        <h1>Projetos</h1>
+        <div class="item" onclick="abrirProjeto('MeuSite')">📁 Projeto: MeuSite</div>
+    </div>
+
+    <!-- 3. Tela de Edição e Exportação -->
+    <div id="editor" class="screen">
+        <button onclick="goTo('dashboard')">⬅ Voltar</button>
+        <h2 id="projName">Projeto</h2>
+        <textarea id="codeArea" style="width: 100%; height: 200px;"><h1>Olá Mundo</h1></textarea>
+        <br><br>
+        <button onclick="exportarZip()" style="background: #0969da;">📥 Baixar como .zip</button>
+    </div>
+
+    <script>
+        // Função para trocar de tela
+        function goTo(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Simula abertura de projeto
+        function abrirProjeto(nome) {
+            document.getElementById('projName').innerText = nome;
+            goTo('editor');
+        }
+
+        // Lógica do ZIP
+        async function exportarZip() {
+            const zip = new JSZip();
+            const nomeProjeto = document.getElementById('projName').innerText;
+            const conteudo = document.getElementById('codeArea').value;
+
+            // Adiciona o arquivo ao zip
+            zip.file("index.html", conteudo);
+
+            // Gera o zip e faz o download
+            const blob = await zip.generateAsync({type:"blob"});
+            
+            // Truque do navegador para baixar o arquivo
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = nomeProjeto + ".zip";
+            link.click();
+        }
+    </script>
+</body>
+</html>
