@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Code Mobile</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; background: #0d1117; color: #c9d1d9; margin: 0; }
+    
+    /* Classes de Visibilidade */
+    .screen { display: none; padding: 20px; }
+    .active { display: block; }
+
+    /* Estilos da Dashboard */
+    .card { background: #161b22; padding: 15px; margin-bottom: 10px; border: 1px solid #30363d; border-radius: 8px; cursor: pointer; }
+    .btn-create { background: #238636; color: white; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <!-- Tela 1: Login -->
+  <div id="loginScreen" class="screen active">
+    <h1>Login</h1>
+    <input type="text" id="user" placeholder="Nome de usuário"><br><br>
+    <button onclick="navegar('dashboardScreen')">Entrar</button>
+  </div>
+
+  <!-- Tela 2: Dashboard (Estilo GitHub) -->
+  <div id="dashboardScreen" class="screen">
+    <h2>Projetos Recentes</h2>
+    <div class="card" onclick="navegar('workspaceScreen')">Projeto: App de Tarefas (index.html)</div>
+    <div class="card" onclick="navegar('workspaceScreen')">Projeto: Site Portfólio (style.css)</div>
+    <br>
+    <div class="btn-create" onclick="alert('Criando novo repositório...')">+ Novo Repositório</div>
+  </div>
+
+  <!-- Tela 3: Workspace (Editor) -->
+  <div id="workspaceScreen" class="screen">
+    <button onclick="navegar('dashboardScreen')">⬅ Voltar</button>
+    <h2>Workspace</h2>
+    <textarea style="width:100%; height: 300px; background: #0d1117; color: white;">// Seu código aqui</textarea>
+  </div>
+
+  <script>
+    // Função mágica de navegação
+    function navegar(idTela) {
+      // Esconde todas as telas
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      // Mostra a tela desejada
+      document.getElementById(idTela).classList.add('active');
+    }
+  </script>
+</body>
+</html>
