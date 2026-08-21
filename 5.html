@@ -3,81 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Mobile IDE</title>
+    <title>IDE Mobile Pro</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; }
-        .header { padding: 20px; font-size: 20px; font-weight: bold; border-bottom: 1px solid #30363d; }
-        .content { padding: 20px; }
-        .card { background: #161b22; padding: 15px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #30363d; cursor: pointer; }
-        .btn-add { background: #238636; color: white; padding: 10px; border-radius: 6px; text-align: center; margin-top: 20px; font-weight: bold; }
-        .hidden { display: none; }
+        body { margin: 0; font-family: sans-serif; background: #0d1117; color: white; height: 100vh; overflow: hidden; }
+        
+        /* Containers de Modo */
+        #codeContainer, #visualContainer { height: 100vh; width: 100vw; display: flex; flex-direction: column; }
+        #visualContainer { display: none; background: white; }
+        textarea { flex: 1; padding: 20px; background: #0d1117; color: #7ee787; border: none; }
+        
+        /* Estojo Flutuante */
+        #estojo {
+            position: fixed; top: 100px; right: 20px; width: 50px; height: 50px;
+            background: #238636; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: move; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 1000;
+        }
+        #estojo-menu { display: none; position: absolute; bottom: 60px; right: 0; background: #161b22; padding: 10px; border-radius: 10px; width: 150px; }
     </style>
 </head>
 <body>
 
-    <!-- TELA 1: HOME (Dashboard) -->
-    <div id="screen-home">
-        <div class="header">Home</div>
-        <div class="content">
-            <h3>Meu Trabalho</h3>
-            <div id="lista-projetos"></div>
-            <div class="btn-add" onclick="criarProjeto()">+ Novo Repositório</div>
-        </div>
+    <!-- Modo Código -->
+    <div id="codeContainer">
+        <textarea id="editor"><h1>Olá</h1><p>Edite-me!</p></textarea>
+        <button onclick="alternarModo()">Mudar para Visual</button>
     </div>
 
-    <!-- TELA 2: PROJETO (Lista de arquivos) -->
-    <div id="screen-projeto" class="hidden">
-        <div class="header" onclick="voltar()">⬅ Voltar</div>
-        <div class="content">
-            <h2 id="titulo-projeto"></h2>
-            <div id="lista-arquivos"></div>
-            <div class="btn-add" onclick="adicionarArquivo()">+ Adicionar Arquivo</div>
+    <!-- Modo Visual -->
+    <div id="visualContainer">
+        <iframe id="preview" style="flex:1; border:none;"></iframe>
+        <button onclick="alternarModo()">Mudar para Código</button>
+    </div>
+
+    <!-- Estojo -->
+    <div id="estojo" onclick="toggleMenu()">🧰
+        <div id="estojo-menu">
+            <button onclick="execCmd('bold')">Negrito</button><br>
+            <button onclick="execCmd('foreColor', 'red')">Cor Vermelha</button>
         </div>
     </div>
 
     <script>
-        // Dados do App
-        let projetos = JSON.parse(localStorage.getItem('meusProjetos')) || [];
+        let modoVisual = false;
+        
+        // Alternar entre Código e Visual
+        function alternarModo() {
+            modoVisual = !modoVisual;
+            const codeCont = document.getElementById('codeContainer');
+            const visCont = document.getElementById('visualContainer');
+            const editor = document.getElementById('editor');
+            const preview = document.getElementById('preview');
 
-        // Navegação simples
-        function voltar() {
-            document.getElementById('screen-projeto').classList.add('hidden');
-            document.getElementById('screen-home').classList.remove('hidden');
-        }
-
-        // Criar Projeto
-        function criarProjeto() {
-            let nome = prompt("Nome do novo Repositório:");
-            if (nome) {
-                projetos.push({ nome: nome, arquivos: [] });
-                salvar();
-                renderHome();
+            if (modoVisual) {
+                codeCont.style.display = "none";
+                visCont.style.display = "flex";
+                preview.srcdoc = editor.value + "<body contenteditable='true'></body>";
+            } else {
+                visCont.style.display = "none";
+                codeCont.style.display = "flex";
+                editor.value = preview.contentDocument.body.innerHTML;
             }
         }
 
-        // Salvar dados
-        function salvar() {
-            localStorage.setItem('meusProjetos', JSON.stringify(projetos));
+        // Estojo: Lógica de arrastar
+        const estojo = document.getElementById('estojo');
+        estojo.addEventListener('touchmove', (e) => {
+            estojo.style.left = e.touches[0].clientX + 'px';
+            estojo.style.top = e.touches[0].clientY + 'px';
+        });
+
+        function toggleMenu() {
+            const menu = document.getElementById('estojo-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
 
-        // Renderizar a Home
-        function renderHome() {
-            let container = document.getElementById('lista-projetos');
-            container.innerHTML = '';
-            projetos.forEach((p, index) => {
-                container.innerHTML += `<div class="card" onclick="abrirProjeto(${index})">📁 ${p.nome}</div>`;
-            });
+        function execCmd(cmd, val) {
+            document.getElementById('preview').contentDocument.execCommand(cmd, false, val);
         }
-
-        // Abrir Projeto
-        function abrirProjeto(index) {
-            document.getElementById('screen-home').classList.add('hidden');
-            document.getElementById('screen-projeto').classList.remove('hidden');
-            document.getElementById('titulo-projeto').innerText = projetos[index].nome;
-        }
-
-        // Inicializa
-        renderHome();
     </script>
 </body>
 </html>
