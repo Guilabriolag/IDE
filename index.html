@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDE Mobile Sem Limites + Asset Studio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<iframe id="preview"></iframe>
+
+<!-- Toolbar no Preview -->
+<div id="previewToolbar">
+  <button onclick="execCommand('bold')">B</button>
+  <button onclick="execCommand('italic')">I</button>
+  <button onclick="execCommand('underline')">U</button>
+  <button onclick="execCommand('justifyLeft')">⮜</button>
+  <button onclick="execCommand('justifyCenter')">≡</button>
+  <button onclick="execCommand('justifyRight')">⮞</button>
+  <button onclick="execCommand('insertUnorderedList')">UL</button>
+  <button onclick="addLink()">🔗</button>
+  <button onclick="addImage()">🖼</button>
+  <button onclick="addVideo()">🎬</button>
+</div>
+
+<!-- Botão Flutuante -->
+<button id="fab" onclick="toggleEditor()">✍</button>
+
+<!-- Painel Editor -->
+<div id="editorPanel">
+  <div class="tabs-container" id="tabsBar">
+    <button id="tab_html" class="active" onclick="switchTab('html')">index.html</button>
+    <button id="tab_css" onclick="switchTab('css')">style.css</button>
+    <button id="tab_js" onclick="switchTab('js')">script.js</button>
+    <button id="tab_svg" onclick="switchTab('svg')">asset.svg</button>
+    <button class="add-tab" onclick="addNewTab()">+ Criar Aba</button>
+  </div>
+
+  <!-- Controles específicos do SVG -->
+  <div class="svg-controls" id="svgControls">
+    <span>Fundo do Preview:</span>
+    <select id="svgBgSelect" onchange="updateSvgBg()">
+      <option value="#122820">Planeta (#122820)</option>
+      <option value="#030708">Espaço (#030708)</option>
+      <option value="#ffffff">Branco (#ffffff)</option>
+      <option value="transparent">Transparente</option>
+    </select>
+  </div>
+
+  <textarea id="code_html"></textarea>
+  <textarea id="code_css"></textarea>
+  <textarea id="code_js"></textarea>
+  <textarea id="code_svg"></textarea>
+
+  <div class="buttons">
+    <button class="action" onclick="runCode()">▶ Executar</button>
+    <button class="action" onclick="saveProject()">💾 Salvar</button>
+    <button class="action" onclick="loadProject()">📂 Carregar</button>
+    <button class="action" onclick="toggleEditor()">❌ Fechar</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
