@@ -4,7 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IDE Mobile Sem Limites + Asset Studio</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#238636">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="style.css">
+
+<!-- CodeMirror: editor de código com numeração de linha e highlight -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
 </head>
 <body>
 
@@ -36,6 +44,7 @@
     <button id="tab_svg" onclick="switchTab('svg')">asset.svg</button>
     <button class="add-tab" onclick="addNewTab()">+ Criar Aba</button>
   </div>
+  <div class="tab-hint">💡 toque e segure numa aba criada por você para renomear</div>
 
   <!-- Controles específicos do SVG -->
   <div class="svg-controls" id="svgControls">
@@ -55,11 +64,31 @@
 
   <div class="buttons">
     <button class="action" onclick="runCode()">▶ Executar</button>
-    <button class="action" onclick="saveProject()">💾 Salvar</button>
-    <button class="action" onclick="loadProject()">📂 Carregar</button>
+    <button class="action" onclick="quickSave()">💾 Salvar</button>
+    <button class="action" onclick="openProjectsModal()">📁 Projetos</button>
+    <button class="action" onclick="openComponentModal()">🧩 Componente</button>
+    <button class="action" onclick="openExportModal()">📦 Exportar</button>
+    <button class="action" onclick="openImportModal()">📥 Importar</button>
     <button class="action" onclick="toggleEditor()">❌ Fechar</button>
   </div>
 </div>
+
+<!-- Modal genérico (Projetos / Componente / Exportar / Importar) -->
+<div id="modalOverlay" class="modal-overlay" onclick="if(event.target===this) closeModal()">
+  <div id="modalBox" class="modal-box"></div>
+</div>
+
+<!-- CodeMirror core + modos de linguagem -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+
+<!-- JSZip: exportar/importar projeto em .zip -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <script src="app.js"></script>
 </body>
