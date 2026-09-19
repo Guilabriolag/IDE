@@ -71,6 +71,9 @@
     <button class="action" onclick="openImportModal()">📥 Importar</button>
     <button class="action" onclick="toggleEditor()">❌ Fechar</button>
   </div>
+
+  <!-- Ferramentas registradas via window.IDE.registerTool(...) aparecem aqui -->
+  <div class="buttons" id="toolsBar"></div>
 </div>
 
 <!-- Modal genérico (Projetos / Componente / Exportar / Importar) -->
@@ -91,5 +94,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <script src="app.js"></script>
+
+<!-- Ferramentas (extensões) — carregadas depois do núcleo, que já expõe window.IDE -->
+<script src="tools/clear.js"></script>
+<script src="tools/teste.js"></script>
 </body>
 </html>
